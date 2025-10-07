@@ -1,0 +1,8 @@
+# Storage Folders
+
+This directory contains uploaded files.
+
+## Structure
+
+- `public/` - Publicly accessible files (org banners, avatars, etc.)
+- `private/` - Private files (require authentication to access)
