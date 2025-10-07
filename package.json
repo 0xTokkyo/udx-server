@@ -7,9 +7,9 @@
   "main": "dist/server.js",
   "type": "module",
   "bugs": {
-    "url": "https://github.com/0xTokkyo/udx/issues"
+    "url": "https://github.com/0xTokkyo/udx-server/issues"
   },
-  "homepage": "https://github.com/0xTokkyo/udx",
+  "homepage": "https://github.com/0xTokkyo/udx-server",
   "scripts": {
     "cli": "tsx ./dev/mts/cli.mts",
     "sync-envx": "tsx ./dev/mts/sync-envx.mts",
