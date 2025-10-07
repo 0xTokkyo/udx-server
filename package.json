@@ -1,5 +1,5 @@
 {
-  "name": "uxon-dynamics-server",
+  "name": "udx-server",
   "version": "1.0.0",
   "description": "Express Server for Uxon Dynamics UDX",
   "author": "",
@@ -26,15 +26,16 @@
     "db:studio:stop": "lsof -ti:4983 | xargs kill -9 2>/dev/null || echo 'No process on Drizzle Studio found on port 4983'",
     "db:seed": "tsx src/db/seed.ts",
     "db:status": "drizzle-kit status",
-    "pm2:start": "npm run sync-envx && dotenvx run -f ./env/.env -- pm2 start ecosystem.config.cjs",
-    "pm2:start:prod": "npm run sync-envx && dotenvx run -f ./env/.env -- pm2 start ecosystem.config.cjs --env production",
-    "pm2:stop": "pm2 stop olympus",
-    "pm2:restart": "npm run sync-envx && dotenvx run -f ./env/.env -- pm2 restart olympus",
-    "pm2:reload": "pm2 reload olympus",
-    "pm2:delete": "pm2 delete olympus",
+    "pm2:start": "npm run sync-envx && dotenvx run -f ./env/.env -- npm run build && pm2 start ecosystem.config.cjs",
+    "pm2:start:prod": "npm run sync-envx && dotenvx run -f ./env/.env -- npm run build && pm2 start ecosystem.config.cjs --env production",
+    "pm2:stop": "pm2 stop udx-server",
+    "pm2:restart": "npm run sync-envx && dotenvx run -f ./env/.env -- npm run build && pm2 restart udx-server",
+    "pm2:reload": "pm2 reload udx-server",
+    "pm2:delete": "pm2 delete udx-server",
     "pm2:status": "pm2 status",
-    "pm2:logs": "pm2 logs olympus",
-    "pm2:monit": "pm2 monit"
+    "pm2:logs": "pm2 logs udx-server",
+    "pm2:monit": "pm2 monit",
+    "genesis": "npm install && npm run sync-envx && dotenvx run -f ./env/.env -- npm run db:init && npm run db:seed && npm run dev"
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^1.48.4",

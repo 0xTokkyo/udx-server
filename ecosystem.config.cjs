@@ -5,15 +5,15 @@ module.exports = {
       script: './dist/server.js',
       instances: 1,
       exec_mode: 'cluster',
-      watch: false,
+      watch: true,
       max_memory_restart: '1G',
       env: {
         NODE_ENV: 'development',
-        SERVER_PORT: 3000
+        SERVER_PORT: 3004
       },
       env_production: {
         NODE_ENV: 'production',
-        SERVER_PORT: 3000
+        SERVER_PORT: 3004
       },
       error_file: './logs/server/err.log',
       out_file: './logs/server/out.log',

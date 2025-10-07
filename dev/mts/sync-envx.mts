@@ -7,11 +7,11 @@
 /*   By: 0xTokkyo                                        \____//_____//_/|_|     */
 /*                                                                               */
 /*   Created: 2025-10-04 12:07:14 by 0xTokkyo                                    */
-/*   Updated: 2025-10-04 12:07:22 by 0xTokkyo                                    */
+/*   Updated: 2025-10-07 20:40:29 by 0xTokkyo                                    */
 /*                                                                               */
 /* ***************************************************************************** */
 
-import { copyFileSync, existsSync } from 'fs'
+import { copyFileSync, existsSync, renameSync } from 'fs'
 import { execSync } from 'child_process'
 import { join } from 'path'
 import {
@@ -27,6 +27,11 @@ import {
 /**
  * Script to sync and re-encrypt the .env.production file from the .env file using dotenvx.
  * It copies the .env file to .env.production and then re-encrypts it.
+ * If the .env file does not exist, it copies .env.schema to .env.tempo and then renames it to .env,
+ * preserving the original .env.schema file.
+ * If neither .env nor .env.schema exists, it logs an error and exits.
+ *
+ * Ensure that the .env file is up-to-date before running this script.
  * The script assumes that dotenvx is installed as a dev dependency in the project.
  *
  * Usage: node mts/sync-envx.ts
@@ -44,7 +49,8 @@ interface SyncResult extends BaseResult {}
 enum SyncErrorCode {
   ENV_FILE_MISSING = 'ENV_FILE_MISSING',
   COPY_FAILED = 'COPY_FAILED',
-  ENCRYPTION_FAILED = 'ENCRYPTION_FAILED'
+  ENCRYPTION_FAILED = 'ENCRYPTION_FAILED',
+  SCHEMA_RENAME_FAILED = 'SCHEMA_RENAME_FAILED'
 }
 
 const CONFIG: SyncConfig = {
@@ -64,15 +70,47 @@ function createSyncError(
 
 const log = createLogger('SYNC-ENVX')
 
+function renameSchemaToEnv(config: SyncConfig): SyncResult {
+  try {
+    const schemaFilePath = join(config.envDir, '.env.schema')
+    const tempoFilePath = join(config.envDir, '.env.tempo')
+    const envFilePath = join(config.envDir, config.sourceFile)
+
+    if (existsSync(schemaFilePath)) {
+      copyFileSync(schemaFilePath, tempoFilePath)
+      log('info', `.env.schema copied to .env.tempo`)
+
+      renameSync(tempoFilePath, envFilePath)
+      log('info', `.env.tempo has been renamed to ${config.sourceFile}`)
+
+      return createSuccessResult(
+        `.env.schema copied and renamed to ${config.sourceFile} successfully (original .env.schema preserved)`
+      )
+    } else {
+      const error = createSyncError(
+        SyncErrorCode.ENV_FILE_MISSING,
+        `Neither ${config.sourceFile} nor .env.schema exists in ${config.envDir} folder. Please create one of them.`
+      )
+      return createErrorResult(error)
+    }
+  } catch (originalError) {
+    const error = createSyncError(
+      SyncErrorCode.SCHEMA_RENAME_FAILED,
+      `Failed to copy and rename .env.schema to ${config.sourceFile} - ${formatErrorMessage(originalError)}`,
+      originalError
+    )
+    return createErrorResult(error)
+  }
+}
+
 function validateEnvironmentFile(config: SyncConfig): SyncResult {
   const envFilePath = join(config.envDir, config.sourceFile)
 
   if (!existsSync(envFilePath)) {
-    const error = createSyncError(
-      SyncErrorCode.ENV_FILE_MISSING,
-      `.env file is missing in ${config.envDir} folder. Please create it.`
-    )
-    return createErrorResult(error)
+    const renameResult = renameSchemaToEnv(config)
+    if (!renameResult.success) {
+      return renameResult
+    }
   }
 
   return createSuccessResult('Environment file validation successful')
